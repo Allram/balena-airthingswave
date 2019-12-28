@@ -1,3 +1,7 @@
+> This fork only exists to add automated docker image builds.
+> You can find it at [siku2/balena-airthingswave](https://hub.docker.com/repository/docker/siku2/balena-airthingswave).
+
+
 <h1 align="center">
   <a name="top">☢️</a><br/>Airthings Wave radon detector bridge<br/> <sup><sub>a <a href="https://balena.io">balena</a> and Docker container 🐳</sub></sup>
 </h1>
