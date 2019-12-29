@@ -10,16 +10,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v1
 
-      - name: Dockerize
-        uses: manusa/actions-publish-docker@master
-        with:
-          name: siku2/balena-airthingswave
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Update Docker Hub Description
-        uses: peter-evans/dockerhub-description@v2.1.0
+      - name: Docker login
         env:
-          DOCKERHUB_REPOSITORY: siku2/balena-airthingswave
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKERHUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        shell: bash
+        run: docker login --username ${USERNAME} --password ${PASSWORD}
+
+      - name: Docker build
+        shell: bash
+        run: |
+          docker build . --tag siku2/balena-airthingswave
+          docker push siku2/balena-airthingswave
