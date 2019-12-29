@@ -1,5 +1,10 @@
-> This fork only exists to add automated docker image builds.
-> You can find it at [siku2/balena-airthingswave](https://hub.docker.com/repository/docker/siku2/balena-airthingswave).
+# About this fork
+
+Adds ~~automated~~ docker image builds.
+You can find it at [siku2/balena-airthingswave](https://hub.docker.com/repository/docker/siku2/balena-airthingswave).
+
+Other changes:
+- Support for Wave Plus
 
 
 <h1 align="center">

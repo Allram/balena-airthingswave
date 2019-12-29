@@ -16,3 +16,4 @@ mqtt:
 waves:
   - name: "${WAVES_NAME_1}"
     addr: "${WAVES_ADDR_1}"
+    version: 1
