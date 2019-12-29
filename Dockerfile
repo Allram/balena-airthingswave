@@ -79,6 +79,11 @@ COPY ["docker/crontask.sh", "/etc/periodic/${CRON_PERIOD}/airthingswave-mqtt"]
 COPY ["docker/docker-entrypoint.sh", "/usr/local/bin/"]
 COPY ["docker/config.yaml", "docker/start.sh", "README.md", "./"]
 
+RUN chmod +x \
+     "/etc/periodic/${CRON_PERIOD}/airthingswave-mqtt" \
+     "/usr/local/bin/docker-entrypoint.sh" \
+     "start.sh"
+
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 # Start the main loop
