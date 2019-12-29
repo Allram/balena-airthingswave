@@ -1,12 +1,17 @@
 """
 Tool for easily creating sensor configurations for wave devices.
+Outputs the YAML configuration for the devices to the console.
+
+This is only really useful if you have multiple wave devices and you can't be bothered to write all the configuration manually.
 
 Usage:
 
-    format_sensors.py [device name]...
+    python format_sensors.py [device name]...
 
 Use a "+" at the end of the device name to indicate that it is a wave+ device.
 This will output the additional sensors only supported by wave plus.
+
+This requires at least python 3.7.
 """
 
 import dataclasses

@@ -16,4 +16,10 @@ mqtt:
 waves:
   - name: "${WAVES_NAME_1}"
     addr: "${WAVES_ADDR_1}"
+    # 1 for basic wave.
+    # 2 for wave plus.
+    # Defaults to 1.
     version: 1
+  
+# Model type *could* be detected automatically
+# But I honestly couldn't be bothered.

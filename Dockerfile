@@ -38,6 +38,7 @@ RUN pip install --no-cache-dir \
      pyyaml
 
 RUN wget www.airthings.com/tech/find_wave.py
+RUN 2to3 --write find_wave.py
 
 RUN find /usr/local \
      \( -type d -a -name test -o -name tests \) \

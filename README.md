@@ -1,11 +1,23 @@
 # About this fork
 
-Adds ~~automated~~ docker image builds.
+This fork provides ~~automated~~<sup>1</sup> docker image builds.
 You can find it at [siku2/balena-airthingswave](https://hub.docker.com/repository/docker/siku2/balena-airthingswave).
 
-Other changes:
-- Support for Wave Plus
+The default `DEVICE_NAME` is now "raspberrypi3".
+The image with tag "latest" is built for Raspberry Pi 3 and 4.
 
+> I have no idea how this affects Pi Zero, but you'll probably have to build it yourself.
+
+## Other changes
+
+- Upgraded to Python 3!
+- Support for Wave Plus. See the [config file](docker/config.yaml) for how to specify the device type.
+- Added a tool for creating home assistant MQTT sensor configurations. See [format_sensors.py](tools/format_sensors.py)
+
+[1]: I tried using Docker Hub builds and GitHub Actions but neither supports building for arm architectures.
+I think Travis CI supports it, if you're interested.  
+
+The following is the original README unmodified for posterity:
 
 <h1 align="center">
   <a name="top">☢️</a><br/>Airthings Wave radon detector bridge<br/> <sup><sub>a <a href="https://balena.io">balena</a> and Docker container 🐳</sub></sup>
