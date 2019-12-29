@@ -29,7 +29,7 @@ ICON_CLOUD = "mdi:cloud"
 @dataclasses.dataclass()
 class SensorInfo:
     topic: str
-    unit: Optional[str] = None
+    unit_of_measurement: Optional[str] = None
     icon: Optional[str] = None
     device_class: Optional[str] = None
 
@@ -56,12 +56,17 @@ SENSOR_TEMPLATE = """
   name: "wave/{device}/{topic}"
 """.strip()
 
+SENSOR_VALID_KEYS = {"unit_of_measurement", "icon", "device_class"}
+
 
 def format_sensor(device: str, info: SensorInfo) -> str:
     s = SENSOR_TEMPLATE.format(device=device, topic=info.topic)
 
     info_dict = dataclasses.asdict(info)
     for name, value in info_dict.items():
+        if name not in SENSOR_VALID_KEYS:
+            continue
+
         if value:
             s += f"\n  {name}: \"{value}\""
 
