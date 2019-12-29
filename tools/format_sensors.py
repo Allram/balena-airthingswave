@@ -52,8 +52,8 @@ ATTRIBUTES_PLUS = ATTRIBUTES + (
 
 SENSOR_TEMPLATE = """
 - platform: mqtt
-  state_topic: "wave/{device}/{topic}"
-  name: "wave/{device}/{topic}"
+  state_topic: "{device}/{topic}"
+  name: "{device}/{topic}"
 """.strip()
 
 SENSOR_VALID_KEYS = {"unit_of_measurement", "icon", "device_class"}
