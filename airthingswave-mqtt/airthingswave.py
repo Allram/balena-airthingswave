@@ -138,10 +138,10 @@ class AirthingsWave_mqtt:
     def _publish_readings(self, wave: Wave):
         name = wave.name
         readings = wave.get_readings()
-        print(f"name: {name}  readings: {readings}")
+        print(f"\n{name}:")
         for sname, svalue in readings.items():
+            print("  {0} : {1}".format(sname, svalue))
             topic = f"{name}/{sname}"
-            print("{0} : {1}".format(topic, svalue))
             msg_info = self.mqtt_client.publish(topic, svalue, retain=False)
             msg_info.wait_for_publish()
             # Mosquitto doesn't seem to get messages published back to back
