@@ -7,7 +7,7 @@ from typing import List
 
 import paho.mqtt.client as mqtt
 import yaml
-from bluepy.btle import UUID, Peripheral, BTLEDisconnectError
+from bluepy.btle import UUID, BTLEDisconnectError, BTLEException, Peripheral
 
 
 class Sensor:
@@ -38,7 +38,7 @@ class Sensor:
 
 
 SENSORS_V1 = [
-    Sensor("timestamp", UUID(0x2A08), "HBBBBB", "\t", 0),
+    # Sensor("timestamp", UUID(0x2A08), "HBBBBB", "\t", 0),
     Sensor("temperature", UUID(0x2A6E), "h", "deg C\t", 1.0/100.0),
     Sensor("humidity", UUID(0x2A6F), "H", "%\t\t", 1.0/100.0),
     Sensor("radon_short", "b42e01aa-ade7-11e4-89d3-123b93f75cba",
@@ -46,6 +46,24 @@ SENSORS_V1 = [
     Sensor("radon_long",
            "b42e0a4c-ade7-11e4-89d3-123b93f75cba", "H", "Bq/m3\t", 1.0)
 ]
+
+
+def peripheral_with_retries(addr: str, retries: int) -> Peripheral:
+    exc = None
+
+    for _ in range(retries):
+        try:
+            return Peripheral(addr)
+        except BTLEException as e:
+            if exc is not None:
+                e.__cause__ = exc
+
+            exc = e
+
+        print(f"retrying connection to {addr}")
+        time.sleep(1)
+
+    raise exc
 
 
 class Wave:
@@ -61,7 +79,7 @@ class Wave:
 
     @contextlib.contextmanager
     def with_peripheral(self):
-        p = Peripheral(self.addr)
+        p = peripheral_with_retries(self.addr, 3)
         try:
             yield p
         finally:
@@ -136,19 +154,17 @@ class AirthingsWave_mqtt:
         self.mqtt_client.disconnect()
 
     def _publish_readings(self, wave: Wave):
-        name = wave.name
+        print(f"\n{wave.name}:")
         readings = wave.get_readings()
-        print(f"\n{name}:")
-        for sname, svalue in readings.items():
-            print("  {0} : {1}".format(sname, svalue))
-            topic = f"{name}/{sname}"
-            msg_info = self.mqtt_client.publish(topic, svalue, retain=False)
-            msg_info.wait_for_publish()
-            # Mosquitto doesn't seem to get messages published back to back
-            time.sleep(0.1)
+        for key, value in readings.items():
+            print("  {0} : {1}".format(key, value))
+            self.mqtt_client.publish(f"{wave.name}/{key}", value, retain=True) \
+                .wait_for_publish()
 
     def publish_readings(self):
         for wave in self.waves:
+            success = False
+
             try:
                 self._publish_readings(wave)
             except BTLEDisconnectError:
@@ -156,3 +172,9 @@ class AirthingsWave_mqtt:
             except Exception:
                 print(f"Failed to publish {wave}")
                 traceback.print_exc()
+            else:
+                success = True
+
+            payload = b"ON" if success else b"OFF"
+            self.mqtt_client.publish("{wave.name}/online", payload, retain=True) \
+                .wait_for_publish()
