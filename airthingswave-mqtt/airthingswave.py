@@ -176,5 +176,5 @@ class AirthingsWave_mqtt:
                 success = True
 
             payload = b"ON" if success else b"OFF"
-            self.mqtt_client.publish("{wave.name}/online", payload, retain=True) \
+            self.mqtt_client.publish(f"{wave.name}/online", payload, retain=True) \
                 .wait_for_publish()
