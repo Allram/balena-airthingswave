@@ -153,13 +153,16 @@ class AirthingsWave_mqtt:
     def mqtt_disconnect(self):
         self.mqtt_client.disconnect()
 
+    def _publish_event(self, topic: str, payload) -> None:
+        self.mqtt_client.publish(topic, payload, qos=1, retain=True) \
+            .wait_for_publish()
+
     def _publish_readings(self, wave: Wave):
         print(f"\n{wave.name}:")
         readings = wave.get_readings()
         for key, value in readings.items():
             print("  {0} : {1}".format(key, value))
-            self.mqtt_client.publish(f"{wave.name}/{key}", value, retain=True) \
-                .wait_for_publish()
+            self._publish_event(f"{wave.name}/{key}", value)
 
     def publish_readings(self):
         for wave in self.waves:
@@ -176,5 +179,4 @@ class AirthingsWave_mqtt:
                 success = True
 
             payload = b"ON" if success else b"OFF"
-            self.mqtt_client.publish(f"{wave.name}/online", payload, retain=True) \
-                .wait_for_publish()
+            self._publish_event(f"{wave.name}/online", payload)
