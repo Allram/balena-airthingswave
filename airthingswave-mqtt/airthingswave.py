@@ -14,14 +14,12 @@ class Sensor:
     name: str
     uuid: str
     format_type: str
-    unit: str
     scale: float
 
-    def __init__(self, name, uuid, format_type, unit, scale):
+    def __init__(self, name, uuid, format_type, scale):
         self.name = name
         self.uuid = uuid
         self.format_type = format_type
-        self.unit = unit
         self.scale = scale
 
     def read(self, p: Peripheral):
@@ -29,22 +27,15 @@ class Sensor:
         if not ch.supportsRead():
             return None
 
-        val = ch.read()
-        val = struct.unpack(self.format_type, val)
-        if self.name == "timestamp":
-            return str(datetime(val[0], val[1], val[2], val[3], val[4], val[5]))
-
+        val = struct.unpack(self.format_type, ch.read())
         return str(val[0] * self.scale)
 
 
 SENSORS_V1 = [
-    # Sensor("timestamp", UUID(0x2A08), "HBBBBB", "\t", 0),
-    Sensor("temperature", UUID(0x2A6E), "h", "deg C\t", 1.0/100.0),
-    Sensor("humidity", UUID(0x2A6F), "H", "%\t\t", 1.0/100.0),
-    Sensor("radon_short", "b42e01aa-ade7-11e4-89d3-123b93f75cba",
-           "H", "Bq/m3\t", 1.0),
-    Sensor("radon_long",
-           "b42e0a4c-ade7-11e4-89d3-123b93f75cba", "H", "Bq/m3\t", 1.0)
+    Sensor("temperature", UUID(0x2A6E), "h", 1.0/100.0),
+    Sensor("humidity", UUID(0x2A6F), "H", 1.0/100.0),
+    Sensor("radon_short", "b42e01aa-ade7-11e4-89d3-123b93f75cba", "H", 1.0),
+    Sensor("radon_long", "b42e0a4c-ade7-11e4-89d3-123b93f75cba", "H", 1.0)
 ]
 
 
@@ -148,13 +139,16 @@ class AirthingsWave_mqtt:
             int(conf.get("port", "1883"))
         )
 
+        print("mqtt connected")
+
         return client
 
     def mqtt_disconnect(self):
         self.mqtt_client.disconnect()
+        print("mqtt disconnected")
 
     def _publish_event(self, topic: str, payload) -> None:
-        self.mqtt_client.publish(topic, payload, qos=1, retain=True) \
+        self.mqtt_client.publish(topic, payload, retain=True) \
             .wait_for_publish()
 
     def _publish_readings(self, wave: Wave):

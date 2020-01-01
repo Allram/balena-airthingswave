@@ -51,7 +51,7 @@ ATTRIBUTES_PLUS = ATTRIBUTES + (
     SensorInfo("light", "lm", device_class=DEVICE_CLASS_ILLUMINANCE),
     SensorInfo("pressure", "mbar", "mdi:gauge", DEVICE_CLASS_PRESSURE),
     SensorInfo("co2", "ppm", ICON_CLOUD),
-    SensorInfo("voc", "ppm", ICON_CLOUD),
+    SensorInfo("voc", "ppb", ICON_CLOUD),
 )
 
 
