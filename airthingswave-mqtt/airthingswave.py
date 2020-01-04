@@ -142,14 +142,17 @@ class AirthingsWave_mqtt:
 
         print("mqtt connected")
 
+        client.loop_start()
+
         return client
 
     def mqtt_disconnect(self):
+        self.mqtt_client.loop_stop()
         self.mqtt_client.disconnect()
         print("mqtt disconnected")
 
     def _publish_event(self, topic: str, payload) -> None:
-        self.mqtt_client.publish(topic, payload, retain=True) \
+        self.mqtt_client.publish(topic, payload, retain=True, qos=1) \
             .wait_for_publish()
 
     def _publish_readings(self, wave: Wave):
