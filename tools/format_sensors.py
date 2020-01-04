@@ -15,6 +15,8 @@ This requires at least python 3.7.
 """
 
 import dataclasses
+import re
+from argparse import ArgumentParser, ArgumentTypeError
 from typing import Any, Dict, List, Optional
 
 DEVICE_CLASS_BATTERY = "battery"
@@ -64,7 +66,13 @@ SENSOR_TEMPLATE = """
 SENSOR_VALID_KEYS = {"unit_of_measurement", "icon", "device_class"}
 
 
-def format_sensor(device: str, info: SensorInfo) -> str:
+@dataclasses.dataclass()
+class SensorOptions:
+    expire_after: Optional[int] = None
+    force_update: bool = True
+
+
+def format_sensor(device: str, info: SensorInfo, options: SensorOptions) -> str:
     s = SENSOR_TEMPLATE.format(device=device, topic=info.topic)
 
     info_dict = dataclasses.asdict(info)
@@ -75,29 +83,102 @@ def format_sensor(device: str, info: SensorInfo) -> str:
         if value:
             s += f"\n  {name}: \"{value}\""
 
+    if options.force_update:
+        s += f"\n  force_update: true"
+
+    if options.expire_after:
+        s += f"\n  expire_after: {options.expire_after}"
+
     return s
 
 
-def format_sensors(device: str, plus: bool) -> str:
+def format_sensors(device: str, plus: bool, options: SensorOptions) -> str:
     attrs = ATTRIBUTES_PLUS if plus else ATTRIBUTES
-    return "\n".join(map(lambda i: format_sensor(device, i), attrs))
+    return "\n".join(map(lambda i: format_sensor(device, i, options), attrs))
+
+
+TIME_PATTERN = re.compile(
+    r"^((?P<h>\d+?)hr?)?((?P<m>\d+?)m)?((?P<s>\d+?)s?)?$")
+
+
+def _parse_time(s: str) -> int:
+    match = TIME_PATTERN.match(s)
+    if not match:
+        raise ArgumentTypeError(f"invalid time format: {s!r}")
+
+    def get(key: str, fac: int) -> int:
+        v = match[key]
+        if v is None:
+            return 0
+
+        return int(v) * fac
+
+    return get("h", 60 * 60) + get("m", 60) + get("s", 1)
+
+
+def get_arg_parser() -> ArgumentParser:
+    parser = ArgumentParser(
+        description="A tool for creating the home-assistant sensor configuration."
+    )
+
+    parser.add_argument(
+        "devices", metavar="device", nargs="*",
+        help="Device ID. Add + to the end of the id to indicate that the device is a wave plus. (ex: \"bedroom+\")"
+    )
+
+    parser.add_argument(
+        "--no-force-update", action="store_true", default=False,
+        help="Disable the force_update setting."
+    )
+
+    parser.add_argument(
+        "--expire", type=_parse_time,
+        help="Defines the number of seconds after which the value expires if it's not updated."
+    )
+
+    parser.add_argument(
+        "--clipboard", action="store_true", default=False,
+        help="Write the result to the clipboard."
+    )
+
+    return parser
+
+
+def write_clipboard(content: str) -> None:
+    try:
+        import pyperclip
+    except ImportError:
+        pass
+    else:
+        pyperclip.copy(content)
+        return
+
+    raise ImportError(
+        "clipboard functionality requires pyperclip to be installed") from None
 
 
 def main() -> None:
-    import sys
-    devices = sys.argv[1:]
+    parser = get_arg_parser()
+    args = parser.parse_args()
+
+    options = SensorOptions(expire_after=args.expire,
+                            force_update=not args.no_force_update)
 
     sensors = []
-
-    for device in devices:
+    for device in args.devices:
         plus = False
         if device.endswith("+"):
             device = device[:-1]
             plus = True
 
-        sensors.append(format_sensors(device, plus))
+        sensors.append(format_sensors(device, plus, options))
 
-    print("\n\n".join(sensors))
+    result = "\n\n".join(sensors)
+
+    if args.clipboard:
+        write_clipboard(result)
+
+    print(result)
 
 
 if __name__ == "__main__":
