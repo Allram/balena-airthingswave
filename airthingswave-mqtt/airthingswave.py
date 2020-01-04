@@ -127,8 +127,9 @@ class AirthingsWave_mqtt:
             self.waves.append(wave)
 
     def mqtt_connect(self, conf):
-        client = mqtt.Client()
         conf = conf["mqtt"]
+
+        client = mqtt.Client(client_id=conf.get("client_id"))
         if "username" in conf:
             client.username_pw_set(
                 conf["username"],
