@@ -31,6 +31,7 @@ DEVICE_CLASS_POWER = "power"
 TEMP_CELSIUS = "°C"
 
 ICON_CLOUD = "mdi:cloud"
+ICON_RADIOACTIVE = "mdi:radioactive"
 
 
 @dataclasses.dataclass()
@@ -43,8 +44,8 @@ class SensorInfo:
 
 ATTRIBUTES = (
     SensorInfo("humidity", "%", device_class=DEVICE_CLASS_HUMIDITY),
-    SensorInfo("radon_short", "Bq/m3", ICON_CLOUD),
-    SensorInfo("radon_long", "Bq/m3", ICON_CLOUD),
+    SensorInfo("radon_short", "Bq/m3", ICON_RADIOACTIVE),
+    SensorInfo("radon_long", "Bq/m3", ICON_RADIOACTIVE),
     SensorInfo("temperature", TEMP_CELSIUS,
                device_class=DEVICE_CLASS_TEMPERATURE),
 )
