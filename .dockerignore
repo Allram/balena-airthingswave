@@ -1,4 +1,2 @@
-.*
-*.rb
-*.template
-*.txt
+.github/
+venv/
