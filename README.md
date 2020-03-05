@@ -9,29 +9,75 @@ Supports the following devices:
 - Wave first generation (2900)
 - Wave Plus (2930)
 
-## About this fork
-
-This fork provides ~~automated~~<sup>1</sup> docker image builds.
-You can find it at [siku2/balena-airthingswave](https://hub.docker.com/repository/docker/siku2/balena-airthingswave).
-
-The default `DEVICE_NAME` is now "raspberrypi3".
-The image with tag "latest" is built for Raspberry Pi 3 and 4.
-
-> I have no idea how this affects Pi Zero, but you'll probably have to build it yourself.
+The program automatically searches for new devices every 24 hours.
+It then publishes the readings of each device it knows about every 30 minutes.
+The topic is `wave/{SERIAL NUMBER}/sample`.
+If there's an error with one of the devices it will publish an error to `wave/{SERIAL NUMBER}/error`.
+Please see [Error Payloads](#error-payloads) for a list of errors.
 
 
-## Home Assistant
+## Running
 
-If you're using Home Assistant, check out [siku2/hass-mqtt-airthingswave](https://github.com/siku2/hass-mqtt-airthingswave).
-It's an integration for this.
+### With Docker
+
+The image tag is `siku2/balena-airthingswave`.
+To access the Bluetooth stack the container needs certain privileges such as `NET_ADMIN` capability and access to the host network. 
+
+The following command gets you up and running.
+Please note that you need to replace `<MQTT BROKER>` with the hostname of your MQTT broken.
+```shell script
+docker run --env MQTT_HOST=<MQTT BROKER> --cap-add NET_ADMIN --net host siku2/balena-airthingswave 
+```
+
+You can pass command line arguments as the command like so:
+```shell script
+docker run --cap-add NET_ADMIN --net host siku2/balena-airthingswave --host <MQTT BROKER> --verbose
+```
+
+Use the [`command`](https://docs.docker.com/compose/compose-file/#command) key if you're using docker compose.
+
+See the [Configuration](#configuration) section for more information about the command line arguments.
+
+### Manually
+
+You need Python 3.8!
+
+First, install the dependencies:
+```shell script
+pip install bluepy paho-mqtt
+```
+
+Make sure that you're in the "balena-airthingswave" directory.
+By default it tries to connect to `localhost:1883`. This is most likely not the right address.
+Use the `--host` argument to specify which host to connect to:
+```shell script
+python -m wave --host <MQTT BROKER>
+```
+
+See the [Configuration](#configuration) section for more information about the command line arguments.
 
 
-## Other changes
+## Configuration
 
-- Upgraded to Python 3!
-- Support for Wave Plus. See the [config file](docker/config.yaml) for how to specify the device type.
-- Added a tool for creating home assistant MQTT sensor configurations. See [format_sensors.py](tools/format_sensors.py)
+Currently the only way to configure the program is by passing command line arguments.
+Some settings can also be set using environment variables.
 
-[1]: I tried using Docker Hub builds and GitHub Actions but neither supports building for arm architectures.
-I think Travis CI supports it, if you're interested.
+The following is the output of `python -m wave --help`.
+```shell script
+usage: wave [-h] [-H HOST] [--client-id airthings-wave] [-v]
 
+optional arguments:
+  -h, --help            show this help message and exit
+  -H HOST, --host HOST  MQTT host. Env: $MQTT_HOST
+  --client-id airthings-wave
+                        Client ID to use for MQTT. Env: $MQTT_CLIENT_ID
+  -v, --verbose         increase output verbosity
+```
+Settings with support for environment variables are labeled like this: "Env: $VARIABLE".
+
+
+## Error Payloads
+
+### connection-failed
+
+This error is published if the program couldn't connect to a device.
