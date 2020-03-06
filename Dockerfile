@@ -11,11 +11,9 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-# Declare pre-build variables
-ARG DEVICE_NAME=raspberrypi3
 
 # Define base image
-FROM balenalib/${DEVICE_NAME}-alpine-python:3.7
+FROM balenalib/raspberrypi3-alpine-python:3.7-run
 
 # Declare build variables
 ARG VERSION=0.2.4
