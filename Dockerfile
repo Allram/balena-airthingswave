@@ -15,7 +15,7 @@
 ARG DEVICE_NAME=raspberrypi3
 
 # Define base image
-FROM balenalib/${DEVICE_NAME}-alpine-python:3
+FROM balenalib/${DEVICE_NAME}-alpine-python:3.7
 
 # Declare build variables
 ARG VERSION=0.2.4
