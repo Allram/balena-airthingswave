@@ -1,7 +1,9 @@
 import datetime
+import json
 import logging
+import threading
 import time
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, TypeVar, Union
 
 from . import events, mqtt_helper
 from .device import Wave
@@ -10,13 +12,15 @@ from .protocols import Sample
 
 logger = logging.getLogger(__name__)
 
+T = TypeVar("T")
+
 S_MIN = 60
 S_HOUR = 60 * S_MIN
 
 
 class Task:
     __slots__ = ("name", "run_interval", "func",
-                 "__next_run_at")
+                 "__run_lock", "__next_run_at")
     name: str
     run_interval: float
     func: Callable[[], None]
@@ -29,6 +33,7 @@ class Task:
         self.run_interval = interval
         self.func = func
 
+        self.__run_lock = threading.Lock()
         self.__next_run_at = None
 
     def __repr__(self) -> str:
@@ -38,7 +43,11 @@ class Task:
         td = datetime.timedelta(seconds=self.run_interval)
         return f"<{self.name} [{td}]>"
 
-    def run(self) -> None:
+    @property
+    def running(self) -> bool:
+        return self.__run_lock.locked()
+
+    def __run(self) -> None:
         should_log = logger.isEnabledFor(logging.INFO)
 
         if should_log:
@@ -56,6 +65,10 @@ class Task:
 
         self.__schedule_next_run(time.time())
 
+    def run(self) -> None:
+        with self.__run_lock:
+            self.__run()
+
     def __schedule_next_run(self, t: float) -> None:
         self.__next_run_at = t + self.run_interval
 
@@ -68,9 +81,13 @@ class Task:
 
         return t >= self.__next_run_at
 
+    def run_if_not_running(self) -> None:
+        if not self.running:
+            self.run()
+
     def maybe_run(self, now: float = None) -> None:
         if self.__is_past_next_run(now):
-            self.run()
+            self.run_if_not_running()
 
     def get_next_run(self, now: float = None) -> float:
         if self.__is_past_next_run(now):
@@ -87,6 +104,7 @@ class App:
             raise ValueError("mqtt client must be connected")
 
         self._mqtt_client = mqtt_client
+        self.__mqtt_prefix = "wave/"
 
         self.__update_loop_running = False
 
@@ -98,11 +116,14 @@ class App:
     def __publish_samples(self, samples: List[Tuple[Wave, Optional[Sample]]]) -> None:
         logger.info("publishing %s sample(s)", len(samples))
         mqtt = self._mqtt_client
+        prefix = f"{self.__mqtt_prefix}device/"
         for client, sample in samples:
+            client_prefix = f"{prefix}{client.serial_number}/"
+
             if sample is not None:
                 mqtt_helper.publish_json_message(
                     mqtt,
-                    f"wave/{client.serial_number}/sample",
+                    f"{client_prefix}sample",
                     sample.as_json_object(),
                     qos=1, retain=True
                 )
@@ -110,15 +131,16 @@ class App:
                 # TODO maybe use a global error topic and include the device id.
                 mqtt_helper.publish_json_message(
                     mqtt,
-                    f"wave/{client.serial_number}/error",
+                    f"{client_prefix}error",
                     error_payload("connection-failed", "Failed to connect to wave device")
                 )
 
-    def __read(self) -> None:
-        devices = self._devices
-        if not devices:
-            logger.warning("no devices to read")
-            self.__wait_until_discover()
+    def __read(self, *, devices: Iterable[Wave] = None) -> None:
+        if devices is None:
+            devices = self._devices
+            if not devices:
+                logger.warning("no devices to read")
+                self.__wait_until_discover()
 
         samples = []
         for device in devices:
@@ -204,12 +226,63 @@ class App:
 
     def run(self) -> None:
         assert not self.__update_loop_running
-
         self.__update_loop_running = True
+
+        self.__mqtt_subscribe()
+
         try:
             self.__update_loop()
         finally:
             self.__update_loop_running = False
+
+    def __mqtt_subscribe(self) -> None:
+        mqtt_client = self._mqtt_client
+
+        assert mqtt_client.on_message is None
+        mqtt_client.on_message = self.__handle_message
+        mqtt_client.subscribe(f"{self.__mqtt_prefix}command")
+
+    def __handle_message(self, client: mqtt_helper.MQTTClient, userdata: Any, msg: mqtt_helper.MQTTMessage) -> None:
+        if msg.topic.endswith("command"):
+            self.__run_command(json.loads(msg.payload))
+        else:
+            logger.debug("unhandled message: %s", msg)
+
+    def __run_command(self, cmd: Dict[str, Any]) -> None:
+        logger.debug("executing command %s", cmd)
+        method = cmd["method"]
+
+        try:
+            handler = getattr(self, f"_cmd_{method}")
+        except AttributeError:
+            logger.warning("unknown command method: %r", method)
+            return
+
+        try:
+            handler(cmd)
+        except Exception:
+            logger.exception("command caused error: %r", cmd)
+
+    def _cmd_discover(self, cmd: Dict[str, Any]) -> None:
+        self._discover_task.run_if_not_running()
+
+    def _cmd_update(self, cmd: Dict[str, Any]) -> None:
+        if self._read_task.running:
+            return
+
+        # using .get instead of try-except because the value might be null
+        device_ids: Union[str, List[str], None] = cmd.get("devices")
+        if device_ids is None:
+            self._read_task.run_if_not_running()
+            return
+
+        if isinstance(device_ids, str):
+            serial_numbers = {device_ids}
+        else:
+            serial_numbers = set(device_ids)
+
+        devices = [dev for dev in self._devices if dev.serial_number in serial_numbers]
+        self.__read(devices=devices)
 
 
 def _read_device_sample(device: Wave) -> Sample:
