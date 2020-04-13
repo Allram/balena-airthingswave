@@ -35,8 +35,8 @@ _MODEL_PROTO_FACTORY_MAP = {
 _MODEL_NAME_MAP = {
     Model.WAVE: "Wave",
     Model.WAVE_MINI: "Wave Mini",
-    Model.WAVE_PLUS: "Wave+",
-    Model.WAVE_SECOND_GEN: "Wave2",
+    Model.WAVE_PLUS: "Wave Plus",
+    Model.WAVE_SECOND_GEN: "Wave 2nd gen",
 }
 
 

@@ -124,10 +124,13 @@ class App:
             client_prefix = f"{prefix}{client.serial_number}/"
 
             if sample is not None:
+                data = sample.as_json_object()
+                data["model_name"] = client.model.model_name
+
                 mqtt_helper.publish_json_message(
                     mqtt,
                     f"{client_prefix}sample",
-                    sample.as_json_object(),
+                    data,
                     qos=1, retain=True
                 )
             else:
