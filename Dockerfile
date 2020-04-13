@@ -18,6 +18,6 @@ RUN pip install \
 RUN apk del build-dependencies
 
 WORKDIR /airthingswave
-COPY wave/ wave
+COPY airthingswave airthingswave
 
-ENTRYPOINT ["python", "-m", "wave"]
+ENTRYPOINT ["python", "-m", "airthingswave"]

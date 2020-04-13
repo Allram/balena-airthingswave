@@ -96,6 +96,9 @@ class Task:
         return self.__next_run_at
 
 
+IntOrStr = Union[str, int]
+
+
 class App:
     _devices: List[Wave]
 
@@ -271,18 +274,17 @@ class App:
             return
 
         # using .get instead of try-except because the value might be null
-        device_ids: Union[str, List[str], None] = cmd.get("devices")
+        device_ids: Union[IntOrStr, List[IntOrStr], None] = cmd.get("devices")
         if device_ids is None:
             self._read_task.run_if_not_running()
             return
 
-        if isinstance(device_ids, str):
+        if isinstance(device_ids, (str, int)):
             serial_numbers = {device_ids}
         else:
-            serial_numbers = set(device_ids)
+            serial_numbers = set(map(str, device_ids))
 
-        devices = [dev for dev in self._devices if dev.serial_number in serial_numbers]
-        self.__read(devices=devices)
+        self.__read(devices=(dev for dev in self._devices if dev.serial_number in serial_numbers))
 
 
 def _read_device_sample(device: Wave) -> Sample:

@@ -51,7 +51,7 @@ Make sure that you're in the "balena-airthingswave" directory.
 By default it tries to connect to `localhost:1883`. This is most likely not the right address.
 Use the `--host` argument to specify which host to connect to:
 ```shell script
-python -m wave --host <MQTT BROKER>
+python -m airthingswave --host <MQTT BROKER>
 ```
 
 See the [Configuration](#configuration) section for more information about the command line arguments.
@@ -64,7 +64,7 @@ Some settings can also be set using environment variables.
 
 The following is the output of `python -m wave --help`.
 ```shell script
-usage: wave [-h] [-H HOST] [--client-id airthings-wave] [-v]
+usage: airthingswave [-h] [-H HOST] [--client-id airthings-wave] [-v]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -81,3 +81,23 @@ Settings with support for environment variables are labeled like this: "Env: $VA
 ### connection-failed
 
 This error is published if the program couldn't connect to a device.
+
+## Commands
+
+Commands may be sent to the topic `wave/command`.
+
+### Discover
+
+```json
+{
+  "method": "discover"
+}
+```
+
+### Update
+
+```json
+{
+  "method": "update"
+}
+```

@@ -18,7 +18,7 @@ def env(key: str, default: Any = None) -> Any:
 
 
 def get_argument_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="wave")
+    parser = argparse.ArgumentParser(prog="airthingswave")
     parser.add_argument("-H", "--host", type=url_arg,
                         default=env("MQTT_HOST", "localhost"),
                         help="MQTT host. Env: $MQTT_HOST")
