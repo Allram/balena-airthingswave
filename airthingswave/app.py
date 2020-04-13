@@ -90,6 +90,9 @@ class Task:
             self.run_if_not_running()
 
     def get_next_run(self, now: float = None) -> float:
+        if now is None:
+            now = time.time()
+
         if self.__is_past_next_run(now):
             self.__schedule_next_run(now)
 
@@ -120,12 +123,17 @@ class App:
         logger.info("publishing %s sample(s)", len(samples))
         mqtt = self._mqtt_client
         prefix = f"{self.__mqtt_prefix}device/"
+
+        expires_at = datetime.datetime.utcfromtimestamp(self._read_task.get_next_run())
+        expires_at_str = expires_at.isoformat()
+
         for client, sample in samples:
             client_prefix = f"{prefix}{client.serial_number}/"
 
             if sample is not None:
                 data = sample.as_json_object()
                 data["model_name"] = client.model.model_name
+                data["expires_at"] = expires_at_str
 
                 mqtt_helper.publish_json_message(
                     mqtt,
