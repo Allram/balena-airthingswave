@@ -2,9 +2,13 @@ import _thread
 import contextlib
 import threading
 from types import TracebackType
-from typing import Callable, ContextManager, Optional, Type, TypeVar
+from typing import ContextManager, Optional, Type
 
 DUMMY: ContextManager[None] = contextlib.nullcontext()
+
+
+def in_main_thread() -> bool:
+    return threading.current_thread() is threading.main_thread()
 
 
 class TimeoutInterruptContextManager:
@@ -37,7 +41,7 @@ class TimeoutInterruptContextManager:
         _thread.interrupt_main()
 
     def __enter__(self) -> None:
-        assert threading.current_thread() is threading.main_thread()
+        assert in_main_thread(), "can only be used in main thread"
         assert not self._entered, "cannot use recursively"
 
         self._entered = True
@@ -57,16 +61,8 @@ class TimeoutInterruptContextManager:
             raise TimeoutError from None
 
 
-def timeout_interrupt(timeout: Optional[float]) -> ContextManager[None]:
-    if timeout is None:
+def timeout_interrupt(timeout: Optional[float], ignore_wrong_thread: bool = True) -> ContextManager[None]:
+    if timeout is None or (not in_main_thread() and ignore_wrong_thread):
         return DUMMY
 
     return TimeoutInterruptContextManager(timeout)
-
-
-T = TypeVar("T")
-
-
-def call_with_timeout(f: Callable[[], T], timeout: Optional[float]) -> T:
-    with timeout_interrupt(timeout):
-        return f()
