@@ -20,18 +20,18 @@ Please see [Error Payloads](#error-payloads) for a list of errors.
 
 ### With Docker
 
-The image tag is `siku2/balena-airthingswave`.
+The image tag is `siku2/balena-airthingswave:remaster`.
 To access the Bluetooth stack the container needs certain privileges such as `NET_ADMIN` capability and access to the host network. 
 
 The following command gets you up and running.
 Please note that you need to replace `<MQTT BROKER>` with the hostname of your MQTT broken.
 ```shell script
-docker run --env MQTT_HOST=<MQTT BROKER> --cap-add NET_ADMIN --net host siku2/balena-airthingswave 
+docker run --env MQTT_HOST=<MQTT BROKER> --cap-add NET_ADMIN --net host siku2/balena-airthingswave:remaster 
 ```
 
 You can pass command line arguments as the command like so:
 ```shell script
-docker run --cap-add NET_ADMIN --net host siku2/balena-airthingswave --host <MQTT BROKER> --verbose
+docker run --cap-add NET_ADMIN --net host siku2/balena-airthingswave:remaster --host <MQTT BROKER> --verbose
 ```
 
 Use the [`command`](https://docs.docker.com/compose/compose-file/#command) key if you're using docker compose.

@@ -15,6 +15,8 @@ RUN pip install \
     bluepy \
     paho-mqtt
 
+RUN setcap 'cap_net_raw,cap_net_admin+eip' $(find /usr/local/lib -name bluepy-helper)
+
 RUN apk del build-dependencies
 
 WORKDIR /airthingswave
