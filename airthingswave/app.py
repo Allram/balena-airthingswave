@@ -124,7 +124,7 @@ class App:
         mqtt = self._mqtt_client
         prefix = f"{self.__mqtt_prefix}device/"
 
-        expires_at = datetime.datetime.utcfromtimestamp(self._read_task.get_next_run())
+        expires_at = datetime.datetime.fromtimestamp(self._read_task.get_next_run(), tz=datetime.timezone.utc)
         expires_at_str = expires_at.isoformat()
 
         for client, sample in samples:

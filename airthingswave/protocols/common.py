@@ -49,7 +49,7 @@ class Sample:
 
     def as_json_object(self) -> Dict[str, Any]:
         data = self.as_dict()
-        _dict_map_item(data, "collected_at", lambda dt: dt.isoformat())
+        _dict_map_item(data, "collected_at", lambda dt: dt.astimezone(datetime.timezone.utc).isoformat())
         return data
 
 
