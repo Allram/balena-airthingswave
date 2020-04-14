@@ -11,8 +11,8 @@ Supports the following devices:
 
 The program automatically searches for new devices every 24 hours.
 It then publishes the readings of each device it knows about every 30 minutes.
-The topic is `wave/{SERIAL NUMBER}/sample`.
-If there's an error with one of the devices it will publish an error to `wave/{SERIAL NUMBER}/error`.
+The topic is `wave/device/{SERIAL NUMBER}/sample`.
+If there's an error with one of the devices it will publish an error to `wave/device/{SERIAL NUMBER}/error`.
 Please see [Error Payloads](#error-payloads) for a list of errors.
 
 
@@ -26,7 +26,7 @@ To access the Bluetooth stack the container needs certain privileges such as `NE
 The following command gets you up and running.
 Please note that you need to replace `<MQTT BROKER>` with the hostname of your MQTT broken.
 ```shell script
-docker run --env MQTT_HOST=<MQTT BROKER> --cap-add NET_ADMIN --net host siku2/balena-airthingswave:remaster 
+docker run --env MQTT_HOST=<MQTT BROKER> --cap-add NET_ADMIN --net host siku2/balena-airthingswave:remaster
 ```
 
 You can pass command line arguments as the command like so:

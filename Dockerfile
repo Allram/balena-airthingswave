@@ -15,7 +15,9 @@ RUN pip install \
     bluepy \
     paho-mqtt
 
-RUN setcap 'cap_net_raw,cap_net_admin+eip' $(find /usr/local/lib -name bluepy-helper)
+RUN bluepy_path=$(find /usr/local/lib -name bluepy-helper) && \
+    setcap 'cap_net_raw,cap_net_admin+eip' $bluepy_path && \
+    chmod +x $bluepy_path
 
 RUN apk del build-dependencies
 
