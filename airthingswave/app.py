@@ -291,7 +291,7 @@ class App:
             return
 
         if isinstance(device_ids, (str, int)):
-            serial_numbers = {device_ids}
+            serial_numbers = {str(device_ids)}
         else:
             serial_numbers = set(map(str, device_ids))
 
