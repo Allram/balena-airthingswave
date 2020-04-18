@@ -301,6 +301,7 @@ class App:
 
 def _read_device_sample(device: Wave) -> Sample:
     with device.connect() as proto:
+        logger.debug("reading sample from %s", device)
         return proto.read()
 
 

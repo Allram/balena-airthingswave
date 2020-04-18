@@ -1,11 +1,14 @@
 import dataclasses
 import enum
+import logging
 from typing import Callable, Tuple
 
 from bluepy.btle import Peripheral
 
 from . import events
 from .protocols import Protocol, WavePlusProtocol, WaveProtocol
+
+logger = logging.getLogger(__name__)
 
 
 class Model(enum.Enum):
@@ -59,6 +62,7 @@ class Wave:
         return self._id_tuple() == other._id_tuple()
 
     def connect_peripheral(self, timeout: float = 5) -> Peripheral:
+        logger.debug("connecting to %s", self)
         p = Peripheral()
         with events.timeout_interrupt(timeout):
             p.connect(self.mac_addr)
