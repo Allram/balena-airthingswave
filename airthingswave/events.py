@@ -62,6 +62,10 @@ class TimeoutInterruptContextManager:
 
 
 def timeout_interrupt(timeout: Optional[float], ignore_wrong_thread: bool = True) -> ContextManager[None]:
+    # interrupting bluepy seems to cause a lot of issues rn.
+    # TODO remove when possible
+    return DUMMY
+
     if timeout is None or (not in_main_thread() and ignore_wrong_thread):
         return DUMMY
 
