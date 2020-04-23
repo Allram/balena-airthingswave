@@ -1,3 +1,12 @@
+# Important notice
+
+I'm currently in the middle of transitioning to a complete rewrite of this project.
+You can find the new and improved version on the [remaster](https://github.com/siku2/balena-airthingswave/tree/remaster) branch.
+It is stable enough to be used (at least it's more stable than the current version ever was).
+
+Also note that the docker image with the tag `latest` is currently broken because of reasons related to this.
+If you still wish to use the version found on the master branch use the tag `master` explicitly (`siku2/balena-airthingswave:master`).
+
 # About this fork
 
 This fork provides ~~automated~~<sup>1</sup> docker image builds.
